@@ -161,7 +161,7 @@ agent_to_turn_compatibility (NiceAgent *agent)
       agent->compatibility == NICE_COMPATIBILITY_MSN ?
       STUN_USAGE_TURN_COMPATIBILITY_MSN :
       agent->compatibility == NICE_COMPATIBILITY_WLM2009 ?
-      STUN_USAGE_TURN_COMPATIBILITY_MSN : STUN_USAGE_TURN_COMPATIBILITY_DRAFT9;
+      STUN_USAGE_TURN_COMPATIBILITY_MSN : STUN_USAGE_TURN_COMPATIBILITY_RFC5766;
 }
 
 NiceTurnSocketCompatibility
@@ -173,7 +173,7 @@ agent_to_turn_socket_compatibility (NiceAgent *agent)
       NICE_TURN_SOCKET_COMPATIBILITY_MSN :
       agent->compatibility == NICE_COMPATIBILITY_WLM2009 ?
       NICE_TURN_SOCKET_COMPATIBILITY_MSN :
-      NICE_TURN_SOCKET_COMPATIBILITY_DRAFT9;
+      NICE_TURN_SOCKET_COMPATIBILITY_RFC5766;
 }
 
 Stream *agent_find_stream (NiceAgent *agent, guint stream_id)
