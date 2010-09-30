@@ -86,10 +86,8 @@ typedef struct {
   GQueue *send_requests;
   GHashTable *permissions;		/* stores installed permissions */
   GHashTable *sent_permissions; /* ongoing permission installed */
-  GHashTable *send_data_queues; /* stores a send data queue for per
-	 								peer */
-  guint permission_timeout_source;	/* timer used to invalidate
-	 									permissions */
+  GHashTable *send_data_queues; /* stores a send data queue for per peer */
+  guint permission_timeout_source;	/* timer used to invalidate permissions */
   gboolean has_binding;
   gboolean sent_binding;
   guint binding_timeout_source;
