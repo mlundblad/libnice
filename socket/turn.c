@@ -84,7 +84,8 @@ typedef struct {
   size_t password_len;
   NiceTurnSocketCompatibility compatibility;
   GQueue *send_requests;
-  GHashTable *permissions;		/* stores installed permissions */
+  GList *permissions;		/* the peers (NiceAddress) for which
+                          there is an installed permission */
   GHashTable *sent_permissions; /* ongoing permission installed */
   GHashTable *send_data_queues; /* stores a send data queue for per peer */
   guint permission_timeout_source;	/* timer used to invalidate permissions */
@@ -206,10 +207,6 @@ nice_turn_socket_new (NiceAgent *agent, NiceAddress *addr,
   priv->server_addr = *server_addr;
   priv->compatibility = compatibility;
   priv->send_requests = g_queue_new ();
-  priv->permissions =
-		g_hash_table_new_full (priv_nice_address_hash ,
-		                       (GEqualFunc) nice_address_equal , 
-		                       (GDestroyNotify) nice_address_free, NULL);
   priv->sent_permissions =
 		g_hash_table_new_full (priv_nice_address_hash ,
 		                       (GEqualFunc) nice_address_equal , 
@@ -266,7 +263,8 @@ socket_close (NiceSocket *sock)
   }
   g_queue_free (priv->send_requests);
 
-  g_hash_table_destroy (priv->permissions);
+  g_list_foreach (priv->permissions, (GFunc) nice_address_free, NULL);
+  g_list_free (priv->permissions);
   g_hash_table_destroy (priv->send_data_queues);
   g_source_remove (priv->permission_timeout_source);
 	
@@ -302,7 +300,10 @@ socket_recv (NiceSocket *sock, NiceAddress *from, guint len, gchar *buf)
 static gboolean
 priv_has_permission_for_peer (TurnPriv *priv, const NiceAddress *to)
 {
-	return g_hash_table_lookup (priv->permissions, to) != NULL;
+  GList *found = g_list_find_custom (priv->permissions, to,
+    (GCompareFunc) nice_address_equal);
+
+  return found != NULL;
 }
 
 static gboolean
@@ -518,7 +519,9 @@ priv_permission_timeout (gpointer data)
 	agent_lock ();
 	/* remove all permissions for this agent (the permission for the peer
 	   we are sending to will be renewed) */
-	g_hash_table_remove_all (priv->permissions);
+  g_list_foreach (priv->permissions, (GFunc) nice_address_free, NULL);
+	g_list_free (priv->permissions);
+  priv->permissions = NULL;
 	agent_unlock ();
 
 	return TRUE;
@@ -767,7 +770,8 @@ nice_turn_socket_parse_recv (NiceSocket *sock, NiceSocket **from_sock,
 					nice_address_free (to);
 		 		} else {
 		 			/* we now have a permission installed for this peer */
-					g_hash_table_insert (priv->permissions, to, to);
+          priv->permissions =
+            g_list_append(priv->permissions, to);
 					g_hash_table_remove (priv->sent_permissions, to);
 
 					/* install timer to schedule refresh of the permission */
@@ -951,7 +955,7 @@ priv_retransmissions_create_permission_tick_unlocked (TurnPriv *priv)
 			 message, assume we can just send the data, the server
 			 might not support RFC TURN, or connectivity check will
 			 fail eventually anyway */
-		  g_hash_table_insert (priv->permissions, to, to);
+      priv->permissions = g_list_append (priv->permissions, to);
 		  g_hash_table_remove (priv->sent_permissions, to);
 
 		  socket_dequeue_all_data (priv, to);
