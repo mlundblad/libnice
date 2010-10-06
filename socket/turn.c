@@ -130,15 +130,11 @@ static gboolean priv_forget_send_request (gpointer pointer);
 static guint
 priv_nice_address_hash (gconstpointer data)
 {
-	int *buf = (int *) data;
-	size_t i;
-	guint hash = 0; 
-		
-	for (i = 0 ; i < sizeof(NiceAddress) / sizeof(int) ; i++) {
-		hash ^= g_int_hash(&buf[i]);
-	}
+  gchar address[NICE_ADDRESS_STRING_LEN];
 
-	return hash;
+  nice_address_to_string ((NiceAddress *) data, address);
+
+	return g_str_hash(address);
 }
 
 static void
@@ -151,7 +147,7 @@ priv_send_data_queue_destroy (gpointer data)
     	SendData *data = (SendData *) i->data;
 
 		g_free (data->data);
-		g_slice_free (SendData, data);
+      g_slice_free (SendData, data);
   	}
  	g_queue_free (send_queue);
 }
