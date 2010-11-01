@@ -173,13 +173,14 @@ nice_interfaces_get_local_ips (gboolean include_loopback)
   struct ifaddrs *ifa, *results;
   GList *loopbacks = NULL;
 
+
   if (getifaddrs (&results) < 0)
       return NULL;
 
   /* Loop through the interface list and get the IP address of each IF */
   for (ifa = results; ifa; ifa = ifa->ifa_next) {
     char addr_as_string[INET6_ADDRSTRLEN+1];
-
+    int ret;
 
     /* no ip address from interface that is down */
     if ((ifa->ifa_flags & IFF_UP) == 0)

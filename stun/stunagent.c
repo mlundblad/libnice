@@ -43,7 +43,6 @@
 #include "stunhmac.h"
 #include "stun5389.h"
 #include "utils.h"
-#include "debug.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -546,7 +545,6 @@ size_t stun_agent_finish_message (StunAgent *agent, StunMessage *msg,
           STUN_ATTRIBUTE_REALM, &realm_len);
       username = (uint8_t *) stun_message_find (msg,
           STUN_ATTRIBUTE_USERNAME, &username_len);
-
       if (username == NULL || realm == NULL) {
         skip = TRUE;
       } else {
@@ -637,7 +635,6 @@ size_t stun_agent_finish_message (StunAgent *agent, StunMessage *msg,
 
   msg->key = (uint8_t *) key;
   msg->key_len = key_len;
-
   return stun_message_length (msg);
 
 }
